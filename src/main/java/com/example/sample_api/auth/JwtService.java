@@ -14,17 +14,18 @@ import java.util.Date;
 public class JwtService {
     @Value("${jwt.secret}")
     private String secret;
-    @Value("${jwt.expiration}")
-    private long expiration;
 
-//    秘密鍵を生成する
-    private SecretKey getSigningKey(){
+    @Value("${jwt.expiration}")
+    private Long expiration;
+
+    // 秘密鍵を生成している
+    private SecretKey getSigningKey() {
         byte[] decodedKey = Base64.getDecoder().decode(secret);
         return Keys.hmacShaKeyFor(decodedKey);
     }
 
-//    JWTトークンを生成するメソッド
-    public  String generateToken(String username){
+    // JWTトークンを生成するメソッド
+    public String generateToken(String username) {
         return Jwts.builder()
                 .subject(username)
                 .issuedAt(new Date())
@@ -33,8 +34,8 @@ public class JwtService {
                 .compact();
     }
 
-//    JWT　トークンをパースしてクレームを取得
-    private Claims getClaimsFromToken(String token){
+    // JWT トークンをパースしてクレームを取得
+    private Claims getClaimsFromToken(String token) {
         return Jwts.parser()
                 .verifyWith(getSigningKey())
                 .build()
@@ -42,26 +43,25 @@ public class JwtService {
                 .getPayload();
     }
 
-//    　JWT　トークンからユーザ名を取得
-    public String getUsernameFromToken(String token){
+    // JWT トークンからユーザ名を取得
+    public String getUsernameFromToken(String token) {
         return getClaimsFromToken(token).getSubject();
     }
 
-//    JWT トークンから有効期限を取得
-    public Date getExpirationDatefromToken(String token){
+    // JWT トークンから有効期限を取得
+    public Date getExpirationDateFromToken(String token) {
         return getClaimsFromToken(token).getExpiration();
     }
 
-//    トークンの有効期限をチェック
-    public Boolean isTokenExpired(String token){
-        Date  expiration = getExpirationDatefromToken(token);
+    // トークンの有効期限をチェック
+    public Boolean isTokenExpired(String token) {
+        Date expiration =  getExpirationDateFromToken(token);
         return expiration.before(new Date());
     }
 
-//    トークンの検証
-    public Boolean validateToken(String token, String username){
+    // トークンの検証
+    public Boolean validateToken(String token, String username) {
         String tokenUsername = getUsernameFromToken(token);
-        return (tokenUsername.equals(username));
+        return (tokenUsername.equals(username) && !isTokenExpired(token));
     }
 }
-
